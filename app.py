@@ -18,9 +18,9 @@ from analysis import (
 from data_loader import FUNNEL_STEPS, load_funnel_data
 from power import detectable_effect, mde_curve, required_sample_size, weeks_required
 from scenarios import SCENARIOS
-from verdict import decide
+from verdict import PROGRAMME_LABELS, decide
 
-st.set_page_config(page_title="Onboarding Experiment Designer", layout="wide")
+st.set_page_config(page_title="Digital Adoption Experiment Designer", layout="wide")
 
 st.markdown(
     """
@@ -67,25 +67,32 @@ def _nav():
     cols[0].button("Home", on_click=_go, args=("intro",), use_container_width=True)
     cols[1].button("Design", on_click=_go, args=("designer",), use_container_width=True)
     cols[2].button("Scenarios", on_click=_go, args=("scenarios",), use_container_width=True)
-    cols[3].button("Analyze", on_click=_go, args=("dashboard",), use_container_width=True)
+    cols[3].button("Demo mode", on_click=_go, args=("dashboard",), use_container_width=True)
 
 
 # ------------------------------------------------------------------- intro --
 def render_intro():
-    st.title("Onboarding Experiment Designer")
+    st.title("Digital Adoption Experiment Designer")
     st.subheader(
-        "Size an onboarding experiment before you run it, pressure-test it "
-        "against the ways A/B tests lie, and get a defensible decision."
+        "Designing an evaluation for the adoption gap in Hand in Hand "
+        "International's DIGITISE programme."
     )
     st.write(
         """
-Most experiment tooling tells you what happened after the fact. The harder
-questions come earlier: **how long do we need to run this**, and **is this test
-even capable of detecting the effect we care about?** Those are power and
-minimum-detectable-effect questions, and simulation is the right instrument for
-them — not a substitute for production data.
+Hand in Hand International's DIGITISE programme trains small business owners in
+Nairobi — over 80% women — in digital marketing and e-commerce. Cohort 1 results
+show trained participants earning **$108 PPP more per month**. But only **49%**
+of trained participants reported adopting digital practices at all, and among
+women that figure was **46%, against 59% for men**.
 
-This tool does three things:
+The bottleneck is adoption, not training. This project designs the evaluation
+that would test an intervention against it, and works through what that
+evaluation could and could not conclude at the programme's actual scale.
+
+The hardest questions come before any data is collected: **is this study capable
+of detecting the effect we care about**, and **what would a null result actually
+mean?** Those are power questions, and simulation is the right instrument for
+them.
 """
     )
 
@@ -93,27 +100,33 @@ This tool does three things:
     with c1:
         st.markdown("**1. Design**")
         st.caption(
-            "Given your baseline conversion, weekly traffic, and the lift you'd "
-            "actually act on, how many users and how many weeks until you can "
-            "call it."
+            "Given a baseline adoption rate, the participants available, and the "
+            "improvement worth acting on — is the study adequately powered, and "
+            "what could it detect?"
         )
     with c2:
         st.markdown("**2. Pressure-test**")
         st.caption(
             "Four preset experiments, each rigged to look like a clean win while "
-            "hiding a specific failure mode. Watch the verdict engine catch each one."
+            "hiding a specific failure mode. Watch the decision engine catch each."
         )
     with c3:
-        st.markdown("**3. Analyze**")
+        st.markdown("**3. Demo mode**")
         st.caption(
-            "Full funnel breakdown with step-level significance testing and an "
-            "automated ship / extend / don't-ship recommendation."
+            "A generic SaaS funnel analyser showing the same machinery on a "
+            "conventional product funnel. Illustrative only — not DIGITISE data."
         )
+
+    st.caption(
+        "Independent case study built from Hand in Hand International's published "
+        "cohort 1 results. Not an official Hand in Hand evaluation, and not "
+        "affiliated with the organisation. No participant-level data was used."
+    )
 
     st.write("")
     b1, b2, b3 = st.columns([2, 2, 4])
     b1.button(
-        "Design an experiment", type="primary", on_click=_go, args=("designer",),
+        "Design the evaluation", type="primary", on_click=_go, args=("designer",),
         use_container_width=True,
     )
     b2.button(
@@ -124,77 +137,150 @@ This tool does three things:
 # ---------------------------------------------------------------- designer --
 def render_designer():
     _nav()
-    st.title("Design an experiment")
+    st.title("Design the evaluation")
     st.caption(
-        "Answer the pre-launch questions: what can this test detect, and how long "
-        "until it can detect it."
+        "Answer the pre-launch questions: what can this study detect, and what "
+        "would a null result actually mean."
     )
 
-    c1, c2, c3, c4 = st.columns(4)
-    baseline = c1.number_input(
-        "Baseline conversion (%)", 0.5, 99.0, 27.0, step=0.5,
-        help="Current activation rate of the step you're trying to move.",
-    ) / 100
-    weekly_traffic = c2.number_input(
-        "Weekly eligible users", 100, 1_000_000, 4000, step=100,
-        help="New users per week who will actually enter the experiment.",
+    mode = st.radio(
+        "Setting",
+        ["Fixed cohort (DIGITISE pilot)", "Continuous traffic (generic demo)"],
+        horizontal=True,
+        key="design_mode",
     )
-    target_lift = c3.number_input(
-        "Lift you'd act on (% relative)", 1.0, 200.0, 10.0, step=1.0,
-        help="The smallest improvement that would actually change your decision.",
-    ) / 100
-    power_pct = c4.select_slider("Power", [0.70, 0.80, 0.90, 0.95], value=0.80)
+    programme = mode.startswith("Fixed")
 
     alpha = 0.05
-    n_needed = required_sample_size(baseline, target_lift, alpha, power_pct)
-    wks = weeks_required(n_needed, weekly_traffic)
 
-    st.write("")
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Users needed per arm", f"{n_needed:,}")
-    m2.metric("Total users needed", f"{2 * n_needed:,}")
-    m3.metric("Weeks to run", f"{wks:.1f}")
+    if programme:
+        st.caption(
+            "A programme enrols a fixed number of participants per cohort. The "
+            "question is not how long to run, but whether the cohort is large "
+            "enough to answer the question at all."
+        )
+        c1, c2, c3 = st.columns(3)
+        baseline = c1.number_input(
+            "Baseline adoption (%)", 0.5, 99.0, 46.0, step=0.5,
+            help="Women's digital adoption in DIGITISE cohort 1 treatment group.",
+        ) / 100
+        participants = c2.number_input(
+            "Participants available", 50, 100_000, 1600, step=50,
+            help="Women in cohorts 2 and 3, inferred from published programme totals.",
+        )
+        target_lift = c3.number_input(
+            "Improvement worth acting on (% relative)", 1.0, 200.0, 28.0, step=1.0,
+            help="28% relative closes the observed 46%-to-59% gender gap.",
+        ) / 100
+        power_pct = st.select_slider("Power", [0.70, 0.80, 0.90, 0.95], value=0.80)
 
-    if wks > 8:
-        st.error(
-            f"At {weekly_traffic:,} users/week this test needs **{wks:.1f} weeks** to "
-            f"detect a {target_lift:.0%} lift. That is likely too long to be useful. "
-            "Either target a bigger effect, find more traffic, or pick a metric "
-            "higher in the funnel with a larger base rate."
+        n_per_arm = participants // 2
+        n_needed = required_sample_size(baseline, target_lift, alpha, power_pct)
+        mde_actual = detectable_effect(baseline, n_per_arm, alpha, power_pct)
+
+        st.write("")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Participants per arm", f"{n_per_arm:,}")
+        m2.metric("Needed for target effect", f"{n_needed:,}")
+        m3.metric("Smallest detectable effect", f"{mde_actual:.1%}")
+
+        if n_per_arm >= n_needed:
+            st.success(
+                f"**Adequately powered.** {n_per_arm:,} per arm exceeds the "
+                f"{n_needed:,} needed to detect a {target_lift:.0%} relative change "
+                f"({baseline:.0%} to {baseline * (1 + target_lift):.0%}) at "
+                f"{power_pct:.0%} power. A null result here would be informative — "
+                "it would mean an effect this large probably is not there."
+            )
+        else:
+            st.error(
+                f"**Underpowered for this target.** Detecting a {target_lift:.0%} "
+                f"relative change needs {n_needed:,} per arm; the cohort supports "
+                f"{n_per_arm:,}. At this size the study can only detect changes of "
+                f"{mde_actual:.1%} or larger. A null result would not distinguish "
+                "'no effect' from 'not enough participants' — so it could not "
+                "justify a decision either way."
+            )
+
+        st.divider()
+        st.subheader("What this cohort can detect")
+        st.caption(
+            "Smallest detectable relative change at each possible cohort size. This "
+            "is the constraint that should drive how ambitious the intervention is."
         )
-    elif wks > 4:
-        st.warning(
-            f"**{wks:.1f} weeks** is a long but workable run. Fix the end date now "
-            "and commit to it — stopping early is what the Peeking scenario is about."
-        )
+        rows = []
+        for frac in [0.25, 0.5, 0.75, 1.0, 1.5, 2.0]:
+            n = int(n_per_arm * frac)
+            if n < 20:
+                continue
+            rows.append({"per_arm": n, "mde": detectable_effect(baseline, n, alpha, power_pct)})
+        curve_df = pd.DataFrame(rows)
+        x_title = "Participants per arm"
+        x_field = "per_arm:Q"
     else:
-        st.success(
-            f"**{wks:.1f} weeks** to detect a {target_lift:.0%} relative lift "
-            f"({baseline:.1%} to {baseline * (1 + target_lift):.1%}) at "
-            f"{power_pct:.0%} power."
+        st.caption(
+            "Generic product setting: users arrive continuously, so the question is "
+            "how many weeks of traffic are required."
         )
+        c1, c2, c3, c4 = st.columns(4)
+        baseline = c1.number_input(
+            "Baseline conversion (%)", 0.5, 99.0, 27.0, step=0.5
+        ) / 100
+        weekly_traffic = c2.number_input(
+            "Weekly eligible users", 100, 1_000_000, 4000, step=100
+        )
+        target_lift = c3.number_input(
+            "Lift you'd act on (% relative)", 1.0, 200.0, 10.0, step=1.0
+        ) / 100
+        power_pct = c4.select_slider("Power", [0.70, 0.80, 0.90, 0.95], value=0.80)
 
-    st.divider()
+        n_needed = required_sample_size(baseline, target_lift, alpha, power_pct)
+        wks = weeks_required(n_needed, weekly_traffic)
 
-    st.subheader("What can I detect, by week?")
-    st.caption(
-        "The smallest relative lift this test could detect if you stopped at each "
-        "week. Anything below the curve is invisible to you — the experiment would "
-        "return 'no significant difference' even if the effect were real."
-    )
+        st.write("")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Users needed per arm", f"{n_needed:,}")
+        m2.metric("Total users needed", f"{2 * n_needed:,}")
+        m3.metric("Weeks to run", f"{wks:.1f}")
 
-    curve = mde_curve(baseline, weekly_traffic, max_weeks=12, alpha=alpha, power=power_pct)
-    curve_df = pd.DataFrame(curve, columns=["week", "mde"])
+        if wks > 8:
+            st.error(
+                f"At {weekly_traffic:,} users/week this needs **{wks:.1f} weeks** to "
+                f"detect a {target_lift:.0%} lift — likely too long to be useful. "
+                "Target a bigger effect, find more traffic, or pick a metric with a "
+                "larger base rate."
+            )
+        elif wks > 4:
+            st.warning(
+                f"**{wks:.1f} weeks** is long but workable. Fix the end date now and "
+                "commit to it — stopping early is what the Peeking scenario shows."
+            )
+        else:
+            st.success(
+                f"**{wks:.1f} weeks** to detect a {target_lift:.0%} relative lift at "
+                f"{power_pct:.0%} power."
+            )
+
+        st.divider()
+        st.subheader("What can I detect, by week?")
+        st.caption(
+            "Anything below the curve is invisible — the test would return 'no "
+            "significant difference' even if the effect were real."
+        )
+        curve = mde_curve(baseline, weekly_traffic, 12, alpha, power_pct)
+        curve_df = pd.DataFrame(curve, columns=["week", "mde"])
+        x_title = "Weeks running"
+        x_field = "week:Q"
 
     line = (
         alt.Chart(curve_df)
         .mark_line(point=True, strokeWidth=2)
         .encode(
-            x=alt.X("week:Q", title="Weeks running", axis=alt.Axis(tickMinStep=1)),
-            y=alt.Y("mde:Q", title="Detectable relative lift", axis=alt.Axis(format="%")),
+            x=alt.X(x_field, title=x_title),
+            y=alt.Y("mde:Q", title="Detectable relative change", axis=alt.Axis(format="%")),
             tooltip=[
-                alt.Tooltip("week:Q", title="Week"),
-                alt.Tooltip("mde:Q", format=".1%", title="Detectable lift"),
+                alt.Tooltip(x_field, title=x_title),
+                alt.Tooltip("mde:Q", format=".1%", title="Detectable change"),
             ],
         )
     )
@@ -205,24 +291,9 @@ def render_designer():
     )
     st.altair_chart((line + target_rule).properties(height=340), use_container_width=True)
     st.caption(
-        "Dashed line is the lift you said you'd act on. Where the curve drops below "
-        "it is the earliest you could responsibly read the result."
+        "Dashed line is the change you said you'd act on. Where the curve sits below "
+        "it, the study can detect what matters."
     )
-
-    st.divider()
-    st.subheader("If you only have N weeks")
-    fixed_weeks = st.slider("Weeks available", 1, 12, 4)
-    n_avail = int(weekly_traffic * fixed_weeks / 2)
-    mde_avail = detectable_effect(baseline, n_avail, alpha, power_pct)
-    d1, d2 = st.columns(2)
-    d1.metric("Users per arm", f"{n_avail:,}")
-    d2.metric("Smallest detectable lift", f"{mde_avail:.1%}")
-    if mde_avail > target_lift:
-        st.warning(
-            f"In {fixed_weeks} weeks you can only detect a {mde_avail:.1%} lift, but "
-            f"you said you'd act on {target_lift:.0%}. This test is underpowered for "
-            "the decision you want to make — a null result would tell you nothing."
-        )
 
 
 # --------------------------------------------------------------- scenarios --
@@ -266,7 +337,13 @@ def render_scenarios():
     if df["day"].nunique() > 1:
         guardrails["peeking"] = detect_peeking_risk(peeking_series(df))
 
-    result = decide(ztest, len(df) // 2, guardrails)
+    result = decide(
+        ztest,
+        len(df) // 2,
+        guardrails,
+        baseline_rate=ztest["control_rate"],
+        target_lift=0.05,
+    )
     _verdict_banner(result)
 
     with st.expander("What the tool caught, and why it matters", expanded=True):
@@ -395,10 +472,13 @@ def render_scenarios():
 # --------------------------------------------------------------- dashboard --
 def render_dashboard():
     _nav()
-    st.title("Analyze a funnel")
-    st.caption(
-        "Compares a Control onboarding flow against a Treatment (redesigned) flow "
-        "and recommends whether to ship, extend the test, or roll it back."
+    st.title("Demo mode: generic funnel analyser")
+    st.warning(
+        "**This page is a reusable demonstration, not the DIGITISE case study.** "
+        "The funnel steps (email verification, profile completion, day-7 activation) "
+        "and acquisition channels are conventional self-serve SaaS constructs. They "
+        "do not represent Hand in Hand International participants, programmes, or "
+        "results. See the Design and Scenarios pages for the case study."
     )
 
     with st.sidebar:
@@ -442,7 +522,15 @@ def render_dashboard():
     col3.metric("p-value", f"{ztest['p_value']:.4f}")
     col4.metric("Sample size / group", f"{n_per_group:,}")
 
-    _verdict_banner(decide(ztest, n_per_group, {"srm": srm_check(df)}))
+    _verdict_banner(
+        decide(
+            ztest,
+            n_per_group,
+            {"srm": srm_check(df)},
+            baseline_rate=ztest["control_rate"],
+            target_lift=0.05,
+        )
+    )
 
     st.divider()
 
@@ -545,8 +633,8 @@ def render_dashboard():
     )
 
     st.caption(
-        "Baseline rates are documented in ASSUMPTIONS.md. Adjust the sliders to "
-        "model a different onboarding design."
+        "Illustrative synthetic data. Baseline rates and their status (benchmark vs. "
+        "placeholder) are documented in ASSUMPTIONS.md."
     )
 
 

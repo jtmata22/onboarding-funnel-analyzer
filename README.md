@@ -1,88 +1,107 @@
-# Onboarding Experiment Designer
+# Digital Adoption Experiment Designer
 
-A Streamlit tool for designing onboarding experiments before they run, stress-testing
-them against the ways A/B tests mislead, and turning results into a defensible
-ship / extend / don't-ship recommendation.
+An independent product/MEL case study: designing the evaluation that would test an
+intervention against the digital adoption gap in Hand in Hand International's
+DIGITISE programme — and working out what that evaluation could and could not
+conclude at the programme's actual scale.
 
-**Start here: [FINDINGS.md](FINDINGS.md)** — the actual recommendation this tool was
-built to produce. The app is how I got there.
+**Start with [FINDINGS.md](FINDINGS.md)** — the recommendation. The app is how I
+got there.
 
-## Why this exists
+> Independent case study built from publicly available evidence. Not an official
+> Hand in Hand International evaluation, not affiliated with the organisation,
+> and no participant-level data was used.
 
-Most experiment tooling reports what happened after the fact. The harder questions
-come earlier, and they are the ones that sink experiments:
+## The problem
 
-- How long do we need to run this?
-- Is this test even capable of detecting the effect we care about?
-- If it comes back null, will that mean "no effect" or "not enough users"?
+Hand in Hand International's DIGITISE programme trains small business owners in
+Nairobi — over 80% women — in digital marketing and e-commerce. Cohort 1 results
+show participants who received digital training earning **$108 PPP more per
+month** than those who did not.
 
-Those are power and minimum-detectable-effect questions. Simulation is the correct
-instrument for them — not a stand-in for production data, but the only way to answer
-a question about a test that has not run yet.
+But only **49%** of trained participants reported adopting digital practices at
+all, and among women that was **46% against 59% for men** — inside a national
+43% gender gap in daily mobile internet use.¹
 
-## What it does
+```
+Enrolled -> Trained -> Reported adopting digital practices -> Enterprise outcomes
+                    ^
+   ~54% of trained women not retained at this step
+```
 
-**1. Design** — Given a baseline conversion rate, weekly traffic, and the smallest
-lift you'd actually act on, it returns users needed per arm, weeks to run, and a
-curve of what's detectable at each week. If the test can't detect what you care
-about in the time you have, it says so before you spend the traffic.
+**The bottleneck is adoption, not training.** Every downstream benefit is gated
+on a step where more than half the intended beneficiaries drop out.
 
-**2. Pressure-test** — Four preset experiments, each engineered to look like a clean,
-significant win while hiding a specific failure mode:
+## The recommendation
+
+Test an enhanced one-to-one coaching model alongside existing group training,
+sized to answer three questions: does coaching increase adoption, does adoption
+translate into enterprise income, and can it be delivered at a sustainable cost.
+
+The design finding that matters most is a constraint. At ~800 women per arm:
+
+| Target change | Adoption | Needed per arm | Feasible? |
+|---|---|---|---|
+| +10% relative | 46% → 51% | 1,849 | No — more than the programme has |
+| +28% relative (closes the gap) | 46% → 59% | 233 | Yes, comfortably |
+
+The evaluation can detect an intervention that closes most of the gap, but is
+**poorly positioned to distinguish a modest improvement from no effect**. A
+half-measure would consume both remaining cohorts and return an uninterpretable
+null. That constraint should drive how ambitious the intervention is — and it is
+invisible without running the numbers first.
+
+Full reasoning, evaluation design, decision framework, and risks in
+[FINDINGS.md](FINDINGS.md).
+
+## What the app does
+
+**1. Design** — Is the study adequately powered for the effect worth acting on?
+Supports a fixed-cohort programme setting (the DIGITISE case) and a continuous
+traffic setting (generic products). Reports minimum detectable effect and states
+plainly what a null result would and would not mean.
+
+**2. Pressure-test** — Four preset experiments, each engineered to look like a
+clean, significant win while hiding a specific failure mode:
 
 | Scenario | The headline | What's actually true |
 |---|---|---|
-| Simpson's paradox | +73% lift, p < 0.0001 | Treatment is worse in *both* segments; the arms have different mixes |
-| Novelty effect | +22% lift, p < 0.0001 | Week 1 was +50%, week 4 is −2.5%. The effect is already gone |
-| Sample ratio mismatch | +15% lift, p < 0.0001 | Split is 52/48, not 50/50. Randomisation is broken; result is uninterpretable |
-| Peeking | Significant mid-flight | True effect is exactly zero. Daily checking manufactured the signal |
+| Simpson's paradox | +73%, p < 0.0001 | Worse in *both* segments; arms have different mixes |
+| Novelty effect | +22%, p < 0.0001 | Period 1 +50%, period 4 −2.5%. Effect already gone |
+| Sample ratio mismatch | +15%, p < 0.0001 | 52/48 split. Randomisation broken; result uninterpretable |
+| Peeking | Significant mid-flight | True effect is zero. Daily checking manufactured the signal |
 
-The verdict engine catches each one and overrides the headline result. A significant
-p-value does not earn a ship recommendation if the randomisation failed or the pooled
-number reverses by segment.
+The decision engine catches each and overrides the headline. A small p-value does
+not earn a recommendation if randomisation failed or the pooled number reverses
+by segment.
 
-**3. Analyze** — Full funnel breakdown: step-by-step conversion and drop-off,
-chi-square testing at each step to locate where flows diverge, time-to-activate,
-and activation by acquisition channel.
+**3. Demo mode** — A generic SaaS funnel analyser demonstrating the same
+machinery on a conventional product funnel. **Illustrative only — its email
+verification, profile completion and day-7 activation steps have nothing to do
+with DIGITISE**, and the page says so.
 
-## Where the problem came from: Hand in Hand International
+## Two ideas kept separate
 
-Hand in Hand International's DIGITISE programme trains small business owners in
-Nairobi (over 80% women) in digital marketing and e-commerce. Their cohort 1 results
-are a real instance of exactly the problem this tool is built for: entrepreneurs who
-received digital marketing training earned **$108 PPP more per month**, but only
-**49%** of trained participants adopted digital practices — and adoption among women
-was **46% vs. 59%** for men, inside a broader 43% gender gap in Kenyan mobile
-internet use.¹
+The decision engine distinguishes:
 
-That is an onboarding funnel with a measurable, gendered drop-off:
+- **Statistical sufficiency** — is the sample large enough to detect the target
+  effect? Arithmetic, answered by `power.py` against the baseline rate and target,
+  *not* a fixed sample floor.
+- **Operational confidence** — is the evidence strong enough to scale, given
+  guardrails, durability, and delivery cost? A judgment a p-value does not settle.
 
-```
-Enrolled -> Trained -> Adopted digital practices -> Revenue gain
-                    ^
-             54% of women lost here
-```
-
-[FINDINGS.md](FINDINGS.md) works that problem end to end: hypothesis, the experiment
-I'd run for cohorts 2 and 3, what it can and cannot detect at the programme's actual
-scale, the risks I'd flag, and what I'd monitor after launch.
-
-The sizing finding is the interesting one — at ~800 women per arm the programme can
-detect an intervention that closes most of the gender gap, but **cannot** detect a
-modest one (a 10% relative lift would need 1,849 per arm, more women than remain in
-the programme). That constraint should drive the intervention design, and it is
-invisible without running the numbers first.
+Conflating them is why an earlier version of this repo simultaneously claimed
+800 participants per arm was sufficient (in the findings) and underpowered (in
+the app). Sufficiency depends on baseline and target effect — a 233-per-arm study
+can be adequate for a large effect while 5,000 is inadequate for a small one.
 
 ## Documentation
 
-- **[FINDINGS.md](FINDINGS.md)** — the recommendation: hypothesis, experiment design,
-  power analysis, risks, post-launch monitoring
-- **[ASSUMPTIONS.md](ASSUMPTIONS.md)** — every baseline rate and threshold, where it
-  came from, and what is a benchmark vs. a placeholder
-
-## Tech stack
-
-Python · Streamlit · pandas · numpy · scipy · Altair
+- **[FINDINGS.md](FINDINGS.md)** — executive recommendation, evidence, hypothesis,
+  evaluation design, outcome definitions, decision framework, risks, monitoring
+- **[ASSUMPTIONS.md](ASSUMPTIONS.md)** — published evidence vs. my evaluation
+  assumptions vs. generic simulator placeholders, kept strictly separate, plus
+  methodology and limitations
 
 ## Run it locally
 
@@ -91,32 +110,23 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Opens at `http://localhost:8501`.
-
 ## Project structure
 
 ```
-app.py             Streamlit UI: intro, designer, scenarios, funnel dashboard
+app.py             Streamlit UI: intro, design, scenarios, demo mode
 power.py           Sample size, minimum detectable effect, runtime
 scenarios.py       The four rigged experiments
-analysis.py        Funnel math, z-test, chi-square, SRM, segment and trend diagnostics
-verdict.py         Guardrails and the ship / extend / no-ship decision
-data_loader.py     Synthetic funnel generator
+analysis.py        Rate comparisons, SRM, segment and trend diagnostics
+verdict.py         Sufficiency, guardrails, and the decision framework
+data_loader.py     Synthetic funnel generator (demo mode only)
 FINDINGS.md        The recommendation
-ASSUMPTIONS.md     Documented assumptions and their sources
+ASSUMPTIONS.md     Evidence, assumptions, and limitations
 ```
 
-## Methodology
+## Tech stack
 
-- Significance: p < 0.05, two-sided
-- Power: 80% default, adjustable
-- Minimum sample per arm before any ship recommendation: 1,000
-- Meaningful lift: ≥5% relative — a product judgment, not a statistical one
-- SRM alarm: p < 0.001
+Python · Streamlit · pandas · numpy · scipy · Altair
 
-All thresholds are documented in [ASSUMPTIONS.md](ASSUMPTIONS.md) and adjustable in
-`verdict.py`.
-
-¹ Hand in Hand International, *DIGITISE: Initial results for Hand in Hand's business
-accelerator in Nairobi*, in partnership with Happel Foundation. GSMA 2024 for the
-mobile internet gap figure.
+¹ Hand in Hand International, *DIGITISE: Initial results for Hand in Hand's
+business accelerator in Nairobi*, in partnership with Happel Foundation. GSMA
+2024 for the mobile internet gap.
