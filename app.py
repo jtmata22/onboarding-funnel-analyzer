@@ -118,9 +118,11 @@ them.
         )
 
     st.caption(
-        "Independent case study built from Hand in Hand International's published "
-        "cohort 1 results. Not an official Hand in Hand evaluation, and not "
-        "affiliated with the organisation. No participant-level data was used."
+        "Based on work I did as an Operations Intern at Hand in Hand International. "
+        "The original analysis drew on internal programme data; this public version "
+        "was rebuilt using only figures from the published cohort 1 endline report — "
+        "no internal or participant-level data appears here. Shared with permission. "
+        "Views are my own; this is not an official Hand in Hand publication."
     )
 
     st.write("")

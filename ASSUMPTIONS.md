@@ -132,7 +132,10 @@ These are teaching cases, designed to be caught.
 
 ## 6. What this analysis does not do
 
-- No participant-level data was used. Everything rests on published aggregates.
+- **No internal or participant-level data appears in this repository.** The
+  original internship analysis drew on internal programme data; this public
+  version was rebuilt from published aggregates only, so every figure here is
+  traceable to the cohort 1 endline report or to my own stated assumptions.
 - No causal claim is made about the relationship between adoption and revenue.
   The two are associated in cohort 1; that association is not established as
   causal here, and should not be extrapolated linearly.
@@ -140,8 +143,9 @@ These are teaching cases, designed to be caught.
   non-independence from repeated observations, and survivorship bias are all
   unmodelled.
 - Cost-effectiveness is not assessed, because no cost data is public.
-- This is an **independent case study**, not an official Hand in Hand
-  International evaluation, and carries no endorsement from the organisation.
+- This is personal work produced during an operations internship, shared with
+  permission. It is **not an official Hand in Hand International evaluation** and
+  carries no endorsement from the organisation.
 
 ¹ Hand in Hand International, *DIGITISE: Initial results for Hand in Hand's
 business accelerator in Nairobi*, in partnership with Happel Foundation.

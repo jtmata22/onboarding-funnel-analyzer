@@ -20,10 +20,11 @@ adoption gap, but would be poorly positioned to distinguish a modest improvement
 from no effect.** That should shape how ambitious the intervention is, before
 anyone commits a cohort to it.
 
-> This is an independent case study based on publicly available evidence. It is
-> not an official Hand in Hand International evaluation or product
-> recommendation, and is not affiliated with the organisation. No
-> participant-level data was used.
+> Based on work I did as an Operations Intern at Hand in Hand International. The
+> original analysis drew on internal programme data; this public version was
+> rebuilt using only figures from the published cohort 1 endline report, and no
+> internal or participant-level data appears here. Shared with permission. Views
+> are my own; this is not an official Hand in Hand evaluation or publication.
 
 ---
 
@@ -200,11 +201,13 @@ The intervention should be considered successful only if it:
 
 ## Limitations
 
-- No participant-level DIGITISE data was available. All figures are published
-  cohort 1 aggregates; the power calculations are my own, computed against those
-  aggregates using `power.py`.
-- Participant counts for cohorts 2 and 3 are inferred from programme totals.
-  Real enrolment figures would change the sizing table.
+- **This published version deliberately excludes internal data.** Every figure
+  here is a published cohort 1 aggregate; the power calculations are my own,
+  computed against those aggregates using `power.py`. Conclusions drawn from
+  internal data during the internship are not reproduced here.
+- Because of that exclusion, participant counts for cohorts 2 and 3 are inferred
+  from published programme totals rather than actual enrolment. Real figures
+  would shift the sizing table.
 - The confidence-versus-interest hypothesis rests on indirect evidence and is
   offered as testable, not established.
 - Delivery cost is central to the recommendation and could not be estimated —

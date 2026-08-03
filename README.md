@@ -1,16 +1,25 @@
 # Digital Adoption Experiment Designer
 
-An independent product/MEL case study: designing the evaluation that would test an
-intervention against the digital adoption gap in Hand in Hand International's
-DIGITISE programme — and working out what that evaluation could and could not
-conclude at the programme's actual scale.
+Designing the evaluation that would test an intervention against the digital
+adoption gap in Hand in Hand International's DIGITISE programme — and working out
+what that evaluation could and could not conclude at the programme's actual scale.
 
 **Start with [FINDINGS.md](FINDINGS.md)** — the recommendation. The app is how I
 got there.
 
-> Independent case study built from publicly available evidence. Not an official
-> Hand in Hand International evaluation, not affiliated with the organisation,
-> and no participant-level data was used.
+## Background
+
+I worked on this as an **Operations Intern at Hand in Hand International**, where
+I also led a CRM system migration. The adoption-gap analysis and the coaching
+recommendation come out of that work.
+
+The original analysis drew on internal programme data. **This public version was
+rebuilt using only figures published in the cohort 1 endline report** — no
+internal or participant-level data appears anywhere in this repository. Shared
+with permission.
+
+> Views are my own. This is not an official Hand in Hand International
+> publication or evaluation.
 
 ## The problem
 
