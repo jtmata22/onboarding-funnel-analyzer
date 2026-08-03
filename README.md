@@ -7,6 +7,9 @@ what that evaluation could and could not conclude at the programme's actual scal
 **Start with [FINDINGS.md](FINDINGS.md)** — the recommendation. The app is how I
 got there.
 
+ACTUAL DEMO + CASE
+https://ngo-funnel-analyzer.streamlit.app/ 
+
 ## Background
 
 I worked on this as an **Operations Intern at Hand in Hand International**, where
